@@ -1,3 +1,19 @@
+html, body, #root, .main {
+  height: 100%;
+}
+
+.main {
+  justify-content: flex-start;
+  flex-direction: row;
+  align-items: center;
+  display: flex;
+  padding: 30px;
+}
+
+.main-inner {
+  width: 50%;
+}
+
 .App {
   text-align: center;
 }
