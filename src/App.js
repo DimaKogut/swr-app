@@ -1,16 +1,18 @@
-import logo from './logo.svg';
 import './App.css';
-import useSWR, { SWRConfig } from "swr";
+import useSWR, { SWRConfig, useSWRConfig } from "swr";
 import { useCallback } from "react";
 import config from './config';
 
-const fetcher = (url) => fetch(url, {
+const fetcher = (url, token=config.token) => fetch(url, {
   method: 'GET',
-  headers: { 'Authorization': config.token }
+  headers: { 'Authorization': token }
 }).then((res) => res.json());
 
-const useProject = () => {
-  const { data, error } = useSWR(`https://dev.contraxsuite.com/api/v1/project/projects/?total_records=true`, fetcher)
+const useProject = (shouldFetch) => {
+  const { data, error } = useSWR(
+    shouldFetch ? `${config.API}/api/v1/project/projects/?total_records=true` : null,
+    url => fetcher([url]),
+    { refreshInterval: 1000 })
 
   return {
     data,
@@ -20,13 +22,15 @@ const useProject = () => {
 }
 
 function App() {
-  const { data, error } = useSWR(
-    'https://dev.contraxsuite.com/api/v1/project/projects/recent/',
+  const { data, error } = useSWR(() =>
+    [`${config.API}/api/v1/project/projects/recent/`, config.token],
     fetcher,
+    // { refreshInterval: 1000 }
   );
-  const projects = useProject();
+  const projects = useProject(true);
+  const { mutate } = useSWRConfig();
 
-  if (error) return "An error has occurred.";
+  // if (error) return "An error has occurred.";
   return (
     <div className='main'>
       <SWRConfig
@@ -37,6 +41,14 @@ function App() {
         <div
           key='one'
           className='main-inner'>
+          <button
+            onClick={() => {
+              mutate(`${config.API}/api/v1/project/projects/recent/`);
+            }}
+          >
+            Mutate(Refresh on click)
+          </button>
+
           {!data && "Loading..."}
           {data && data.map(item => {
             return (
